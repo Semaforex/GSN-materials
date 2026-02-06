@@ -19,10 +19,12 @@ class PatchPooling(torch.nn.Module):
         mask = (indexes.view((1, 1, -1)) < patch_ends.view((B, P, 1))) & \
             (indexes.view((1, 1, -1)) >= patch_beginings.view((B, P, 1)))
 
-        masked_batch = torch.where(mask.view(B, P, S, 1), batch.view(B, 1, S, D), torch.zeros(D))
-        patch_lengths = torch.where(patch_lengths==0, 1, patch_lengths)
-        result = torch.sum(masked_batch, dim=2)/patch_lengths.view(B, P, -1)
-        result = torch.where(result.to(bool), result, -1)
+        patch_sum = torch.matmul(mask, batch)
+
+        patch_lengths = torch.where(patch_lengths==0, 1, patch_lengths).unsqueeze(-1)
+        safe_lengths = patch_lengths.clamp(min=1.0)
+        result = patch_sum/safe_lengths
+        result = torch.where(patch_lengths > 0, result, -1*torch.ones_like(result))
 
         return result
 
