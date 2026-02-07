@@ -1,0 +1,64 @@
+W PyTorchu **Advanced Indexing** działa niemal identycznie jak w NumPy, co jest ogromną zaletą. Główna różnica polega na tym, że operujesz na tensorach i możesz wykorzystać moc GPU.
+
+Oto szybka notatka:
+
+---
+
+## Advanced Indexing w PyTorch
+
+Zaawansowane indeksowanie wyzwalane jest, gdy obiektem indeksującym nie jest liczba całkowita ani plaster (`slice`), ale **Tensor** lub **lista**.
+
+### 1. Integer Vector Indexing (Indeksowanie wektorowe)
+
+Wybierasz konkretne elementy na podstawie ich współrzędnych. PyTorch "paruje" indeksy z poszczególnych wymiarów.
+
+```python
+import torch
+
+t = torch.tensor([[10, 20], 
+                  [30, 40], 
+                  [50, 60]])
+
+# Wybieramy elementy: (0,0), (1,1) oraz (2,0)
+rows = [0, 1, 2]
+cols = [0, 1, 0]
+
+print(t[rows, cols]) 
+# Wynik: tensor([10, 40, 50])
+
+```
+
+### 2. Boolean Indexing (Maskowanie)
+
+Bardzo przydatne przy filtrowaniu danych lub nakładaniu progów (thresholding).
+
+```python
+t = torch.randn(3, 3)
+
+# Tworzymy maskę logiczną
+mask = t > 0
+
+# Wybieramy tylko dodatnie wartości
+positive_values = t[mask] 
+
+# Częsty case: zerowanie wartości poniżej progu
+t[t < 0] = 0
+
+```
+
+### 3. Funkcje pomocnicze (Alternatywa dla indeksowania)
+
+W PyTorchu często zamiast surowego indeksowania używa się dedykowanych funkcji, które są bardziej czytelne w grafach obliczeniowych:
+
+* **`torch.gather(input, dim, index)`**: Zbiera wartości wzdłuż danej osi.
+* **`torch.index_select(input, dim, index)`**: Wybiera całe wiersze/kolumny wzdłuż jednej osi.
+* **`torch.masked_select(input, mask)`**: Podobne do `t[mask]`.
+
+### Kluczowe różnice vs NumPy:
+
+1. **Gpu Support:** Indeksowanie w PyTorchu może odbywać się bezpośrednio na karcie graficznej.
+2. **Differentiability:** O ile samo indeksowanie jest różniczkowalne, o tyle modyfikacja tensora w miejscu (in-place) przy użyciu indeksowania (np. `t[mask] = 0`) może czasem sprawiać problemy przy bardziej złożonym autogradzie (backpropagation).
+
+---
+
+Chcesz, żebyśmy rozpisali przykład z `torch.gather`, który często pojawia się w zadaniach typu NLP czy Reinforcement Learning?

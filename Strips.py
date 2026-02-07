@@ -1,29 +1,18 @@
 def horizontal_stripes_midpoints(batch: torch.Tensor) -> torch.Tensor:
-    ### START CODE HERE ###
-    # Pad the input horizontally with 0s to detect stripes at edges
-    # Shape becomes (B, C, H, W+2)
+
     padded = torch.nn.functional.pad(batch, (1, 1), mode='constant', value=0)
     
-    # Calculate differences between adjacent pixels along the width dimension
-    # Shape becomes (B, C, H, W+1)
+
     diff = padded[..., 1:] - padded[..., :-1]
     
-    # Find indices of stripe starts (diff == 1) and ends (diff == -1)
-    # .nonzero() returns a tensor of shape (N, 4) -> [batch_idx, channel_idx, row_idx, col_idx]
     starts = (diff == 1).nonzero()
     ends = (diff == -1).nonzero()
-    
-    # Calculate the column index for midpoints
-    # Note: 'starts' col index is the actual start. 'ends' col index is (actual end + 1).
-    # Formula: floor((w_start + w_end) / 2)
-    # Substituion: floor((start_col + (end_col - 1)) / 2)
+
     mid_cols = (starts[:, 3] + ends[:, 3] - 1) // 2
     
     # Create the output tensor
     out = torch.zeros_like(batch)
-    
-    # Set the calculated midpoints to 1.0 using advanced indexing
-    # We reuse the batch, channel, and row indices from 'starts'
+
     out[starts[:, 0], starts[:, 1], starts[:, 2], mid_cols] = 1.0
     
     return out
